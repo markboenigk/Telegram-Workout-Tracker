@@ -6,4 +6,5 @@ Users can select a workout type (Push, Pull, Legs, Cardio) and their respective 
 The bot is hosted on AWS Lambda for serverless compute and utilizing the Telegram app as a UI. The data is stored in Dynamo DB tables for maximum speed and cost-efficiency. 
 To provide data security the data is stored with the individual telegram chat id as partition and access key, allowing multi-tenancy for this bot and is storing highly sensitive application data on AWS Secret Manager. 
 
-![Alt text](Workout-Architecture.png "Optional title")
+
+![Workout Tracker Screenshot](Workout-Bot-Architecture.png "Infrastructure Diagram")
