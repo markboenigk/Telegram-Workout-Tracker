@@ -1,23 +1,26 @@
-import json 
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from datetime import datetime 
+import json
 import urllib3
 import boto3
 import logging
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-from decimal import Decimal, InvalidOperation
 import os
-from datetime import datetime 
-import re
+import pandas as pd 
+import numpy as np
+from decimal import Decimal, InvalidOperation
+from analytics import * 
+from utils import *
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
 # Initialize AWS Clients Outside the Handler for Reuse
 REGION_NAME = os.getenv('AWS_REGION', 'us-east-1')
 SECRETS_CACHE = {}
 
 secrets_client = boto3.client('secretsmanager', region_name=REGION_NAME)
 dynamodb = boto3.resource('dynamodb', region_name=REGION_NAME)
-
 
 def load_json_file(filename):
     """
@@ -112,7 +115,6 @@ def send_reply(chat_id, message, reply_markup=None):
     else:
         logger.info(f"Sent message to chat_id {chat_id}: {message}")
 
-
 def reset_user_state(chat_id, timestamp, table):
     """
     Resets the user's state in the DynamoDB table.
@@ -134,7 +136,6 @@ def reset_user_state(chat_id, timestamp, table):
     except ClientError as e:
         logger.error(f"Error resetting user state for chat_id {chat_id}: {e}")
         raise
-
 
 def retrieve_latest_record(table, chat_id):
     """
@@ -201,6 +202,7 @@ def update_workout_type(table, chat_id, workout_type_value, column):
         return False
 
 
+
 def send_response_keyboards(chat_id, message, options_dict):
     """
     Sends a reply message with dynamically generated custom keyboards to the Telegram chat.
@@ -219,6 +221,8 @@ def send_response_keyboards(chat_id, message, options_dict):
     send_reply(chat_id, message, reply_markup)
 
 
+import re
+
 def validate_weight_input(message):
     """
     Validates if the input message matches the format of a number followed by a weight unit (kg or lbs).
@@ -230,8 +234,7 @@ def validate_weight_input(message):
         dict: A dictionary with validation status and extracted weight and unit if valid.
     """
     # Define the regex pattern for weight input
-    # Matches numbers with optional decimals followed by 'kg' or 'lbs'
-    pattern = r"^\s*(\d+(\.\d+)?)\s*(kg|lbs)\s*$"  
+    pattern = r"^\s*(\d+(\.\d+)?)\s*(kg|lbs)\s*$"  # Matches numbers with optional decimals followed by 'kg' or 'lbs'
 
     # Match the input message against the pattern
     match = re.match(pattern, message, re.IGNORECASE)
